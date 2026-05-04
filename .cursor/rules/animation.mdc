@@ -1,0 +1,96 @@
+---
+description: GSAP 動畫規範（前台限定，後台禁用）
+globs:
+  - "frontend/*.html"
+  - "frontend/*.js"
+alwaysApply: false
+---
+
+# GSAP 動畫規範
+
+## 適用範圍
+- ✅ 套用：`frontend/*.html`（前台 5 頁）
+- ❌ 禁用：`frontend/admin/**`（後台只能用 CSS hover）
+
+## 基本原則
+1. **只動 transform 與 opacity**，禁止動畫 width/height/margin/padding（會觸發 layout）
+2. 動畫時長：**0.6 ~ 1.0 秒**之間
+3. ease 預設 `power3.out`，按鈕回彈用 `elastic.out(1, 0.5)`
+4. **滾動動畫一律使用 ScrollTrigger**，禁止手動 `addEventListener('scroll')`
+5. **無障礙**：必須處理 `prefers-reduced-motion: reduce`
+
+## 引入 CDN
+```html
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>gsap.registerPlugin(ScrollTrigger);</script>
+```
+
+## 標準進場動畫範本
+```js
+gsap.from('.fade-up', {
+  scrollTrigger: { trigger: '.fade-up', start: 'top 85%' },
+  y: 40,
+  opacity: 0,
+  duration: 0.8,
+  ease: 'power3.out',
+  stagger: 0.15
+});
+```
+
+## Hero 視差效果
+```js
+gsap.to('.hero-bg', {
+  yPercent: -20,
+  ease: 'none',
+  scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
+});
+```
+
+## 打字機效果（首頁職稱）
+- 用純 JS setInterval 實作，不用 GSAP
+- 游標 `|` 用 CSS `@keyframes blink`
+- 完成一輪後可循環打字 / 刪字
+
+## 卡片 hover（GSAP 微互動）
+```js
+btn.addEventListener('mouseenter', () => gsap.to(btn, { scale: 1.05, duration: 0.3 }));
+btn.addEventListener('mouseleave', () => gsap.to(btn, { scale: 1, duration: 0.3 }));
+```
+
+## API 載入後刷新動畫
+動態渲染卡片後：
+```js
+ScrollTrigger.getAll().forEach(t => t.kill());
+gsap.from('.project-card', { ... });
+ScrollTrigger.refresh();
+```
+
+## 表單 focus 發光
+```js
+input.addEventListener('focus', () => gsap.to(input, {
+  boxShadow: '0 0 0 3px rgba(34, 211, 238, 0.4)', duration: 0.3
+}));
+```
+
+## 無障礙處理
+所有頁面 CSS 加入：
+```css
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+JS 中：
+```js
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduceMotion) gsap.globalTimeline.timeScale(100);
+```
+
+## 效能
+- 動畫元素加 `will-change: transform, opacity`
+- `backface-visibility: hidden`
+- 動畫完成後可移除 will-change（避免 GPU 記憶體佔用）

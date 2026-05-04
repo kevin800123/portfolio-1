@@ -1,0 +1,76 @@
+---
+description: 前端 HTML/Tailwind 開發規範（深色主題 + Glassmorphism）
+globs:
+  - "frontend/**/*.html"
+  - "frontend/**/*.js"
+  - "frontend/**/*.css"
+alwaysApply: false
+---
+
+# 前端開發規範
+
+## 技術棧
+- 純 HTML + Tailwind CDN（不用打包工具）
+- 不使用 React / Vue，純 vanilla JS
+- 所有頁面 `<!DOCTYPE html>`、`<html lang="zh-Hant">`
+- 引入：
+  - Tailwind：`https://cdn.tailwindcss.com`
+  - 前台頁面額外引入 GSAP + ScrollTrigger CDN
+
+## 設計系統
+
+### 顏色（深色主題）
+- 主背景：`bg-slate-900`
+- 卡片背景（glassmorphism）：`bg-white/5 backdrop-blur-lg border border-white/10`
+- 主強調色：`cyan-400`
+- 次強調色：`violet-400`
+- 漸層標題：`bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent`
+- 文字：`text-slate-100`（主）、`text-slate-400`（次）
+
+### 卡片標準
+```html
+<div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-6 transition hover:-translate-y-1 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/20">
+```
+
+### 字型
+- 預設 sans，標題 `font-bold tracking-tight`
+- Hero 標題：`text-5xl md:text-7xl`
+- 區塊標題：`text-3xl md:text-4xl`
+
+## 共用元件
+
+### 導覽列（Navbar）
+- 固定頂部 `fixed top-0 inset-x-0 z-50`
+- 半透明模糊：`bg-slate-900/70 backdrop-blur-md border-b border-white/5`
+- 連結：首頁 / 作品集 / 關於我 / 聯絡我 / 登入
+- 當前頁面 `text-cyan-400`，其他 `text-slate-300 hover:text-white`
+- 行動裝置：漢堡選單 (md 以下顯示)
+
+### Footer
+- `border-t border-white/5` + 居中版權字
+- 社群連結：GitHub / LinkedIn
+
+## RWD 斷點
+- 手機 < 640px（單欄）
+- 平板 sm/md（雙欄）
+- 桌面 lg+（三欄）
+- 按鈕觸控目標至少 48x48px
+
+## 表單
+- input/textarea：`bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30`
+- 按鈕主色：`bg-gradient-to-r from-cyan-500 to-violet-500 hover:from-cyan-400 hover:to-violet-400`
+
+## API 串接
+- `const API_BASE = 'http://localhost:8000'`
+- 一律用 `fetch` + `async/await`
+- 統一檢查 `result.success`
+
+## 後台特例（frontend/admin/*）
+- **不使用 GSAP**，只用 CSS hover/transition
+- 沒有 Footer，採 Sidebar + 主內容區
+- 進入頁面 `checkAuth()`，無 token 跳 `login.html`
+
+## 命名與規範
+- 變數 / 函式：camelCase
+- HTML 屬性使用 `data-*` 傳遞動態值
+- Console 不可有錯誤

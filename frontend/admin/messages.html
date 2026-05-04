@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>留言管理 | 後台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <aside class="fixed inset-y-0 left-0 w-64 bg-slate-950 border-r border-white/5 p-6 flex flex-col">
+    <div class="mb-8">
+      <h1 class="text-xl font-bold">⚙️ 後台管理</h1>
+      <p class="text-xs text-slate-500 mt-1">@<span id="hello">admin</span></p>
+    </div>
+    <nav class="flex flex-col gap-1 text-sm flex-1">
+      <a href="dashboard.html" class="px-3 py-2 rounded hover:bg-white/5 transition">📊 儀表板</a>
+      <a href="projects.html"  class="px-3 py-2 rounded hover:bg-white/5 transition">💼 作品管理</a>
+      <a href="messages.html"  class="px-3 py-2 rounded bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400">✉️ 留言管理</a>
+      <a href="profile.html"   class="px-3 py-2 rounded hover:bg-white/5 transition">👤 個人資料</a>
+    </nav>
+    <button onclick="logout()" class="text-left px-3 py-2 rounded text-rose-300 hover:bg-rose-500/10 transition">🚪 登出</button>
+  </aside>
+
+  <main class="ml-64 p-8">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold">留言管理</h2>
+      <p class="text-slate-400 mt-1">查看並管理訪客傳來的訊息</p>
+    </div>
+
+    <div class="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-white/5 text-left text-slate-400">
+          <tr>
+            <th class="py-3 px-4 w-10"></th>
+            <th class="py-3 px-4">寄件人</th>
+            <th class="py-3 px-4">Email</th>
+            <th class="py-3 px-4">內容預覽</th>
+            <th class="py-3 px-4">日期</th>
+            <th class="py-3 px-4 text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="6" class="py-8 text-center text-slate-500">載入中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="toast" class="fixed top-6 right-6 z-50 space-y-2"></div>
+
+  <script>
+    checkAuth();
+    document.getElementById('hello').textContent = localStorage.getItem('username') || 'admin';
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    }
+
+    async function loadList() {
+      const tbody = document.getElementById('tbody');
+      try {
+        const res = await authFetch(API_BASE + '/api/messages');
+        const json = await res.json();
+        if (!json.success) { tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-300">${json.message}</td></tr>`; return; }
+        if (!json.data.length) { tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">目前還沒有留言</td></tr>'; return; }
+
+        tbody.innerHTML = json.data.map(m => {
+          const unread = !m.is_read;
+          return `
+          <tr data-row="${m.id}" class="border-t border-white/5 ${unread ? 'bg-cyan-500/5' : ''} hover:bg-white/5 transition cursor-pointer">
+            <td class="py-3 px-4">${unread ? '<span class="inline-block w-2 h-2 rounded-full bg-cyan-400"></span>' : ''}</td>
+            <td class="py-3 px-4 ${unread ? 'font-bold' : ''}">${escapeHtml(m.name)}</td>
+            <td class="py-3 px-4 text-slate-400">${escapeHtml(m.email)}</td>
+            <td class="py-3 px-4 text-slate-300 max-w-xs truncate">${escapeHtml(m.content)}</td>
+            <td class="py-3 px-4 text-slate-500 text-xs whitespace-nowrap">${(m.created_at || '').slice(0, 16)}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              ${unread ? `<button data-read="${m.id}" class="text-cyan-400 hover:underline mr-3">標記已讀</button>` : `<span class="text-slate-500 mr-3">已讀</span>`}
+              <button data-del="${m.id}" class="text-rose-300 hover:underline">刪除</button>
+            </td>
+          </tr>
+          <tr data-detail="${m.id}" class="hidden border-t border-white/5 bg-slate-950/50">
+            <td colspan="6" class="px-6 py-4 text-slate-300 text-sm whitespace-pre-wrap">${escapeHtml(m.content)}</td>
+          </tr>`;
+        }).join('');
+
+        tbody.querySelectorAll('[data-row]').forEach(tr => {
+          tr.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
+            const id = tr.dataset.row;
+            const detail = tbody.querySelector(`[data-detail="${id}"]`);
+            detail?.classList.toggle('hidden');
+          });
+        });
+        tbody.querySelectorAll('[data-read]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); markRead(parseInt(btn.dataset.read, 10)); });
+        });
+        tbody.querySelectorAll('[data-del]').forEach(btn => {
+          btn.addEventListener('click', (e) => { e.stopPropagation(); deleteItem(parseInt(btn.dataset.del, 10)); });
+        });
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-300">${e.message}</td></tr>`;
+      }
+    }
+
+    async function markRead(id) {
+      try {
+        const res = await authFetch(API_BASE + '/api/messages/' + id, {
+          method: 'PUT', body: JSON.stringify({ is_read: true }),
+        });
+        const json = await res.json();
+        if (json.success) { toast('已標記為已讀'); loadList(); }
+        else toast(json.message || '失敗', 'error');
+      } catch (err) { toast(err.message, 'error'); }
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('確定刪除這則留言？')) return;
+      try {
+        const res = await authFetch(API_BASE + '/api/messages/' + id, { method: 'DELETE' });
+        const json = await res.json();
+        if (json.success) { toast('已刪除'); loadList(); }
+        else toast(json.message || '失敗', 'error');
+      } catch (err) { toast(err.message, 'error'); }
+    }
+
+    loadList();
+  </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+---
+description: FastAPI 後端開發規範（資料庫、認證、API 格式）
+globs:
+  - "backend/**/*.py"
+alwaysApply: false
+---
+
+# FastAPI 後端開發規範
+
+## 專案結構
+backend/
+├── main.py              # FastAPI 入口、CORS、init_db、註冊 router
+├── database.py          # sqlite3 連線 + init_db()
+├── auth_utils.py        # bcrypt + PyJWT + get_current_user
+├── models.py            # 所有 Pydantic schema
+├── seed.py              # 測試資料
+├── requirements.txt
+└── routers/
+    ├── auth.py
+    ├── projects.py
+    ├── messages.py
+    └── profile.py
+
+## 資料庫
+- 一律使用 Python 內建 `sqlite3`，連線檔 `backend/portfolio.db`
+- 提供 `get_db()`：每次取得新連線、`row_factory = sqlite3.Row`、用完關閉
+- 必須提供 `init_db()`：建立 4 張表（users / projects / messages / profile），啟動時呼叫
+- **所有 SQL 必須用參數化查詢（? 佔位符），禁止 f-string 拼接 SQL**
+
+## Pydantic Models
+- 為每個資源建立 `XxxCreate`、`XxxUpdate`、`XxxResponse`
+- 認證相關：`LoginRequest`、`TokenResponse`
+- Response 全部繼承 `BaseModel`，欄位型別明確標註
+
+## 認證
+- 密碼：`bcrypt.hashpw` + `bcrypt.checkpw`
+- Token：PyJWT，演算法 `HS256`，預設 24 小時，payload 至少包含 `sub`（username）+ `exp`
+- `SECRET_KEY` 從環境變數讀取，預設值僅供開發
+- `get_current_user(token: str = Depends(oauth2_scheme))`：驗證失敗回 401
+
+## 路由規範
+- 所有路由前綴：`/api/{resource}`
+- HTTP 動詞對應 CRUD：GET / POST / PUT / DELETE
+- 受保護路由用 `Depends(get_current_user)`
+- 公開端點：`GET /api/projects`、`GET /api/profile`、`POST /api/messages`
+
+## 統一回傳格式
+所有端點回傳：
+
+```json
+{ "success": true, "data": ..., "message": "..." }
+```
+
+失敗時：
+```json
+{ "success": false, "data": null, "message": "錯誤原因" }
+```
+
+對應 HTTP status code：200 / 201 / 400 / 401 / 404 / 500。
+
+## CORS
+`main.py` 使用 `CORSMiddleware`，開發階段 `allow_origins=["*"]`，允許所有 method 與 header。
+
+## 啟動指令
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```

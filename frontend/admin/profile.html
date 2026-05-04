@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>個人資料 | 後台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <aside class="fixed inset-y-0 left-0 w-64 bg-slate-950 border-r border-white/5 p-6 flex flex-col">
+    <div class="mb-8">
+      <h1 class="text-xl font-bold">⚙️ 後台管理</h1>
+      <p class="text-xs text-slate-500 mt-1">@<span id="hello">admin</span></p>
+    </div>
+    <nav class="flex flex-col gap-1 text-sm flex-1">
+      <a href="dashboard.html" class="px-3 py-2 rounded hover:bg-white/5 transition">📊 儀表板</a>
+      <a href="projects.html"  class="px-3 py-2 rounded hover:bg-white/5 transition">💼 作品管理</a>
+      <a href="messages.html"  class="px-3 py-2 rounded hover:bg-white/5 transition">✉️ 留言管理</a>
+      <a href="profile.html"   class="px-3 py-2 rounded bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400">👤 個人資料</a>
+    </nav>
+    <button onclick="logout()" class="text-left px-3 py-2 rounded text-rose-300 hover:bg-rose-500/10 transition">🚪 登出</button>
+  </aside>
+
+  <main class="ml-64 p-8">
+    <div class="mb-8">
+      <h2 class="text-3xl font-bold">個人資料</h2>
+      <p class="text-slate-400 mt-1">修改的內容會即時反映到前台「關於我」與「聯絡我」</p>
+    </div>
+
+    <form id="profileForm" class="bg-white/5 border border-white/10 rounded-xl p-6 max-w-2xl space-y-4 text-sm">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-slate-300 mb-1">名字 *</label>
+          <input name="name" required class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">職稱 *</label>
+          <input name="title" required class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1">自我介紹 *</label>
+        <textarea name="bio" required rows="4" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1">頭像網址</label>
+        <input name="avatar_url" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-slate-300 mb-1">Email</label>
+          <input name="email" type="email" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block text-slate-300 mb-1">GitHub</label>
+          <input name="github" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-slate-300 mb-1">LinkedIn</label>
+        <input name="linkedin" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded focus:border-cyan-400 focus:outline-none" />
+      </div>
+
+      <div class="flex justify-end pt-3 border-t border-white/5">
+        <button type="submit" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition">
+          儲存變更
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <div id="toast" class="fixed top-6 right-6 z-50 space-y-2"></div>
+
+  <script>
+    checkAuth();
+    document.getElementById('hello').textContent = localStorage.getItem('username') || 'admin';
+
+    const form = document.getElementById('profileForm');
+
+    (async () => {
+      try {
+        const res = await fetch(API_BASE + '/api/profile');
+        const json = await res.json();
+        if (json.success && json.data) {
+          for (const k of ['name', 'title', 'bio', 'avatar_url', 'email', 'github', 'linkedin']) {
+            if (form[k]) form[k].value = json.data[k] ?? '';
+          }
+        }
+      } catch (e) { toast('載入失敗：' + e.message, 'error'); }
+    })();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: form.name.value.trim(),
+        title: form.title.value.trim(),
+        bio: form.bio.value.trim(),
+        avatar_url: form.avatar_url.value.trim() || null,
+        email: form.email.value.trim() || null,
+        github: form.github.value.trim() || null,
+        linkedin: form.linkedin.value.trim() || null,
+      };
+      try {
+        const res = await authFetch(API_BASE + '/api/profile', {
+          method: 'PUT', body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (json.success) toast('已儲存', 'success');
+        else toast((json.detail?.message) || json.message || '儲存失敗', 'error');
+      } catch (err) { toast(err.message, 'error'); }
+    });
+  </script>
+</body>
+</html>
