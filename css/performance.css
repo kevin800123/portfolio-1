@@ -1,0 +1,81 @@
+/* GPU 加速與效能優化 */
+.fade-up,
+.project-card,
+.skill-card,
+.timeline-item,
+.btn-anim {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* 漸層文字 */
+.grad-text {
+  background: linear-gradient(90deg, #22d3ee, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 玻璃卡片 */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 打字機游標 */
+@keyframes blink {
+  50% { opacity: 0; }
+}
+.cursor::after {
+  content: '|';
+  margin-left: 2px;
+  color: #22d3ee;
+  animation: blink 1s step-end infinite;
+}
+
+/* Hero 背景動畫 */
+@keyframes hero-gradient-shift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(2%, 1%, 0) scale(1.05); }
+}
+.hero-bg {
+  animation: hero-gradient-shift 12s ease-in-out infinite;
+}
+
+/* hover 升起 */
+.card-hover {
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  border-color: rgba(34, 211, 238, .4);
+  box-shadow: 0 20px 40px -10px rgba(34, 211, 238, .25);
+}
+
+/* 觸控目標至少 48px */
+.btn {
+  min-height: 48px;
+  min-width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 無障礙：使用者偏好減少動畫 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .hero-bg { animation: none; }
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>儀表板 | 後台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/auth.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <aside class="fixed inset-y-0 left-0 w-64 bg-slate-950 border-r border-white/5 p-6 flex flex-col">
+    <div class="mb-8">
+      <h1 class="text-xl font-bold">⚙️ 後台管理</h1>
+      <p class="text-xs text-slate-500 mt-1" id="hello"></p>
+    </div>
+    <nav class="flex flex-col gap-1 text-sm flex-1">
+      <a href="dashboard.html" class="px-3 py-2 rounded bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400">📊 儀表板</a>
+      <a href="projects.html"  class="px-3 py-2 rounded hover:bg-white/5 transition">💼 作品管理</a>
+      <a href="messages.html"  class="px-3 py-2 rounded hover:bg-white/5 transition">✉️ 留言管理</a>
+      <a href="profile.html"   class="px-3 py-2 rounded hover:bg-white/5 transition">👤 個人資料</a>
+    </nav>
+    <button onclick="logout()" class="text-left px-3 py-2 rounded text-rose-300 hover:bg-rose-500/10 transition">🚪 登出</button>
+  </aside>
+
+  <main class="ml-64 p-8">
+    <header class="mb-8">
+      <h2 class="text-3xl font-bold">歡迎回來，<span id="welcomeName" class="text-cyan-400">admin</span> 👋</h2>
+      <p class="text-slate-400 mt-1">這是你的個人履歷網站總覽</p>
+    </header>
+
+    <section class="grid gap-5 md:grid-cols-3">
+      <div class="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-cyan-400/40 transition">
+        <p class="text-slate-400 text-sm">作品總數</p>
+        <p id="statProjects" class="text-4xl font-bold mt-2">--</p>
+        <p class="text-xs text-slate-500 mt-3"><a href="projects.html" class="hover:text-cyan-400">前往管理 →</a></p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-cyan-400/40 transition">
+        <p class="text-slate-400 text-sm">留言總數</p>
+        <p id="statMsgs" class="text-4xl font-bold mt-2">--</p>
+        <p class="text-xs text-slate-500 mt-3"><a href="messages.html" class="hover:text-cyan-400">前往管理 →</a></p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-cyan-400/40 transition">
+        <p class="text-slate-400 text-sm">未讀留言</p>
+        <p id="statUnread" class="text-4xl font-bold mt-2 text-rose-300">--</p>
+        <p class="text-xs text-slate-500 mt-3"><a href="messages.html" class="hover:text-cyan-400">查看未讀 →</a></p>
+      </div>
+    </section>
+
+    <section class="mt-10 bg-white/5 border border-white/10 rounded-xl p-6">
+      <h3 class="font-bold mb-3">快速指南</h3>
+      <ul class="text-sm text-slate-400 space-y-2 list-disc pl-5">
+        <li>「作品管理」中可以新增、編輯、刪除你的作品</li>
+        <li>「留言管理」可以查看訪客留言，並標記為已讀</li>
+        <li>「個人資料」會即時反映到前台「關於我」與「聯絡我」頁面</li>
+      </ul>
+    </section>
+  </main>
+
+  <div id="toast" class="fixed top-6 right-6 z-50 space-y-2"></div>
+
+  <script>
+    checkAuth();
+    document.getElementById('hello').textContent = '@' + (localStorage.getItem('username') || 'admin');
+    document.getElementById('welcomeName').textContent = localStorage.getItem('username') || 'admin';
+
+    (async () => {
+      try {
+        const [pRes, sRes] = await Promise.all([
+          authFetch(API_BASE + '/api/projects'),
+          authFetch(API_BASE + '/api/messages/stats'),
+        ]);
+        const pJson = await pRes.json();
+        const sJson = await sRes.json();
+        if (pJson.success) document.getElementById('statProjects').textContent = pJson.data.length;
+        if (sJson.success) {
+          document.getElementById('statMsgs').textContent = sJson.data.total;
+          document.getElementById('statUnread').textContent = sJson.data.unread;
+        }
+      } catch (e) {
+        toast('讀取統計資料失敗：' + e.message, 'error');
+      }
+    })();
+  </script>
+</body>
+</html>

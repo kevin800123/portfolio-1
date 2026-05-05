@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聯絡我 | Kevin Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <link rel="stylesheet" href="css/performance.css" />
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  <nav class="fixed top-0 inset-x-0 z-50 bg-slate-900/70 backdrop-blur-md border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-bold grad-text">Kevin.dev</a>
+      <button id="navToggle" class="md:hidden text-slate-300 text-2xl btn" aria-label="選單">☰</button>
+      <div class="hidden md:flex gap-6 text-sm">
+        <a href="index.html" class="hover:text-cyan-400 transition">首頁</a>
+        <a href="projects.html" class="hover:text-cyan-400 transition">作品集</a>
+        <a href="about.html" class="hover:text-cyan-400 transition">關於我</a>
+        <a href="contact.html" class="text-cyan-400 font-semibold">聯絡我</a>
+        <a href="login.html" class="hover:text-cyan-400 transition">登入</a>
+      </div>
+    </div>
+    <div id="navMobile" class="md:hidden hidden border-t border-white/5 bg-slate-900/95">
+      <div class="px-6 py-4 flex flex-col gap-3 text-sm">
+        <a href="index.html">首頁</a>
+        <a href="projects.html">作品集</a>
+        <a href="about.html">關於我</a>
+        <a href="contact.html" class="text-cyan-400">聯絡我</a>
+        <a href="login.html">登入</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-24 px-6 max-w-5xl mx-auto">
+    <header class="text-center mb-14 fade-up">
+      <h1 class="text-4xl md:text-6xl font-bold grad-text">聯絡我</h1>
+      <p class="text-slate-400 mt-3">想合作？想交流？留個訊息，我會盡快回覆。</p>
+    </header>
+
+    <div class="grid md:grid-cols-[1fr_1fr] gap-8">
+      <!-- 表單 -->
+      <form id="contactForm" class="glass rounded-xl p-8 space-y-5 fade-up">
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">姓名</label>
+          <input name="name" required minlength="1" maxlength="80"
+                 class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 transition" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">Email</label>
+          <input name="email" type="email" required
+                 class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 transition" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">訊息內容</label>
+          <textarea name="content" rows="6" required minlength="1" maxlength="2000"
+                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 transition resize-none"></textarea>
+        </div>
+        <button id="submitBtn" type="submit"
+                class="btn btn-anim w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition">
+          送出訊息
+        </button>
+        <p id="formMsg" class="text-sm text-center"></p>
+      </form>
+
+      <!-- 聯絡資訊 -->
+      <aside class="space-y-4 fade-stagger">
+        <div class="glass card-hover rounded-xl p-6">
+          <p class="text-cyan-400 text-xs tracking-widest mb-1">EMAIL</p>
+          <p id="cEmail" class="font-semibold">kevin@example.com</p>
+        </div>
+        <div class="glass card-hover rounded-xl p-6">
+          <p class="text-cyan-400 text-xs tracking-widest mb-1">GITHUB</p>
+          <a id="cGithub" href="https://github.com" class="font-semibold hover:text-cyan-400">github.com/kevin</a>
+        </div>
+        <div class="glass card-hover rounded-xl p-6">
+          <p class="text-cyan-400 text-xs tracking-widest mb-1">LINKEDIN</p>
+          <a id="cLinkedin" href="https://linkedin.com" class="font-semibold hover:text-cyan-400">linkedin.com/in/kevin</a>
+        </div>
+        <div class="glass card-hover rounded-xl p-6">
+          <p class="text-cyan-400 text-xs tracking-widest mb-1">回覆時間</p>
+          <p class="text-sm text-slate-400">通常 24 小時內</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="border-t border-white/5 py-10 text-center text-slate-400 text-sm">
+    <div class="flex justify-center gap-6 mb-4">
+      <a href="https://github.com" class="hover:text-cyan-400">GitHub</a>
+      <a href="https://linkedin.com" class="hover:text-cyan-400">LinkedIn</a>
+    </div>
+    <p>© 2026 Kevin Portfolio. All rights reserved.</p>
+  </footer>
+
+  <script src="js/common.js"></script>
+  <script>
+    // 載入聯絡資訊
+    (async () => {
+      const json = await apiGet('/api/profile');
+      if (json.success && json.data) {
+        const p = json.data;
+        if (p.email)    document.getElementById('cEmail').textContent = p.email;
+        if (p.github)   { const a = document.getElementById('cGithub');   a.href = p.github;   a.textContent = p.github.replace(/^https?:\/\//, ''); }
+        if (p.linkedin) { const a = document.getElementById('cLinkedin'); a.href = p.linkedin; a.textContent = p.linkedin.replace(/^https?:\/\//, ''); }
+      }
+    })();
+
+    // focus 發光（Phase 5）
+    if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('#contactForm input, #contactForm textarea').forEach(el => {
+        el.addEventListener('focus', () => gsap.to(el, { boxShadow: '0 0 0 3px rgba(34,211,238,.4)', duration: 0.3 }));
+        el.addEventListener('blur',  () => gsap.to(el, { boxShadow: '0 0 0 0 rgba(34,211,238,0)',   duration: 0.3 }));
+      });
+    }
+
+    // 送出
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        name:    form.name.value.trim(),
+        email:   form.email.value.trim(),
+        content: form.content.value.trim(),
+      };
+      const msg = document.getElementById('formMsg');
+      const btn = document.getElementById('submitBtn');
+
+      if (!data.name || !data.email || !data.content) {
+        msg.textContent = '請完整填寫所有欄位'; msg.className = 'text-sm text-center text-rose-300';
+        return;
+      }
+      if (!/^\S+@\S+\.\S+$/.test(data.email)) {
+        msg.textContent = 'Email 格式不正確'; msg.className = 'text-sm text-center text-rose-300';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = '送出中…';
+      const json = await apiPost('/api/messages', data);
+      btn.disabled = false; btn.textContent = '送出訊息';
+
+      if (json.success) {
+        msg.textContent = '✓ ' + (json.message || '訊息已送出！'); msg.className = 'text-sm text-center text-emerald-300';
+        form.reset();
+        if (window.gsap) gsap.fromTo(btn, { scale: 0.95 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
+      } else {
+        msg.textContent = json.message || '送出失敗'; msg.className = 'text-sm text-center text-rose-300';
+      }
+    });
+  </script>
+</body>
+</html>

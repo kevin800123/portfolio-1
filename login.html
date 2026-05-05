@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登入 | Kevin Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/performance.css" />
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+  <div class="hero-bg absolute inset-0 -z-10 opacity-50"
+       style="background:
+         radial-gradient(50% 50% at 30% 30%, rgba(34,211,238,.25), transparent 60%),
+         radial-gradient(40% 40% at 70% 70%, rgba(167,139,250,.25), transparent 60%);"></div>
+
+  <a href="index.html" class="absolute top-6 left-6 text-slate-400 hover:text-cyan-400 text-sm">← 返回首頁</a>
+
+  <div class="glass rounded-2xl p-8 md:p-10 w-full max-w-md shadow-2xl">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold grad-text">後台登入</h1>
+      <p class="text-slate-400 text-sm mt-2">請輸入管理員帳號密碼</p>
+    </div>
+
+    <form id="loginForm" class="space-y-5">
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">帳號</label>
+        <input name="username" required autocomplete="username"
+               class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 transition" />
+      </div>
+      <div>
+        <label class="block text-sm text-slate-300 mb-2">密碼</label>
+        <input name="password" type="password" required autocomplete="current-password"
+               class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 transition" />
+      </div>
+      <button id="loginBtn" type="submit"
+              class="btn w-full py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-violet-500 font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition">
+        登入
+      </button>
+      <p id="loginMsg" class="text-sm text-center min-h-[1.25rem]"></p>
+    </form>
+
+    <p class="text-center text-xs text-slate-500 mt-8">
+      預設帳號：<code class="text-cyan-300">admin</code> / <code class="text-cyan-300">admin123</code>
+    </p>
+  </div>
+
+  <script>
+    const API_BASE = 'https://portfolio-1-iw4i.onrender.com';
+
+    // 已登入直接跳轉
+    if (localStorage.getItem('token')) {
+      location.replace('admin/dashboard.html');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const username = form.username.value.trim();
+      const password = form.password.value;
+      const msg = document.getElementById('loginMsg');
+      const btn = document.getElementById('loginBtn');
+
+      msg.textContent = '';
+      btn.disabled = true; btn.textContent = '登入中…';
+
+      try {
+        const res = await fetch(API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          localStorage.setItem('token', json.data.access_token);
+          localStorage.setItem('username', json.data.username);
+          msg.textContent = '✓ 登入成功，導向後台…';
+          msg.className = 'text-sm text-center text-emerald-300 min-h-[1.25rem]';
+          setTimeout(() => location.replace('admin/dashboard.html'), 600);
+        } else {
+          const detail = json.detail?.message || json.message || '登入失敗';
+          msg.textContent = detail;
+          msg.className = 'text-sm text-center text-rose-300 min-h-[1.25rem]';
+        }
+      } catch (err) {
+        msg.textContent = '無法連線到後端：' + err.message;
+        msg.className = 'text-sm text-center text-rose-300 min-h-[1.25rem]';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '登入';
+      }
+    });
+  </script>
+</body>
+</html>
