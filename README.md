@@ -141,8 +141,32 @@ portfolio-1/
 | 前端 | HTML5 + Tailwind CDN + 純 JavaScript |
 | 動畫 | GSAP 3.12 + ScrollTrigger |
 | 後端 | FastAPI + Uvicorn |
-| 資料庫 | SQLite（內建） |
+| 資料庫 | PostgreSQL（Supabase） / SQLite（本地開發） |
 | 認證 | PyJWT + bcrypt |
+| 部署 | Render + Supabase |
+
+---
+
+## ☁️ 部署（Render + Supabase）
+
+### 資料庫（Supabase）
+1. 到 [supabase.com](https://supabase.com) 建立專案
+2. **Connect → Transaction pooler** 複製 Connection String（含密碼）
+3. 建議啟用 RLS（SQL Editor 執行 `ALTER TABLE xxx ENABLE ROW LEVEL SECURITY`）
+
+### 後端（Render）
+1. Render Dashboard → **New → Web Service** → 連結此 GitHub repo
+2. **Root Directory**：`backend`
+3. **Build Command**：`pip install -r requirements.txt`
+4. **Start Command**：`uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. 環境變數設定：
+   - `DATABASE_URL` = Supabase Transaction pooler 連線字串
+   - `PORTFOLIO_SECRET` = 一串 32+ 字元的亂數
+6. 部署完成後呼叫 `POST /api/auth/init` 建立管理員
+
+### 資料庫引擎自動切換
+- 有 `DATABASE_URL` → 連 PostgreSQL（雲端模式）
+- 沒有 `DATABASE_URL` → 退回 SQLite（本地開發模式）
 
 ---
 

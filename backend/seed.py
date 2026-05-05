@@ -67,7 +67,7 @@ def seed():
             ("Bob Chen", "bob@example.com", "請問有開放接案嗎？我們公司想做一個內部系統。"),
         ]
         conn.executemany(
-            "INSERT INTO messages (name, email, content, is_read) VALUES (?, ?, ?, 0)",
+            "INSERT INTO messages (name, email, content) VALUES (?, ?, ?)",
             msgs,
         )
 

@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import init_db
+from database import db_info, init_db
 from routers import auth, messages, profile, projects
 from utils import ok
 
@@ -19,6 +19,8 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup() -> None:
+    info = db_info()
+    print(f"[startup] DB engine={info['engine']} target={info['target']}")
     init_db()
 
 

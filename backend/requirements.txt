@@ -4,3 +4,9 @@ pyjwt>=2.9
 bcrypt>=4.2
 python-multipart>=0.0.12
 pydantic>=2.10
+
+# PostgreSQL（Supabase / Render 用），本地若只用 SQLite 仍可正常安裝不影響
+psycopg2-binary>=2.9
+
+# 從 .env 讀取本地環境變數（雲端平台會直接注入，這個只在本地需要）
+python-dotenv>=1.0

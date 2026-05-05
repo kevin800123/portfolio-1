@@ -19,6 +19,11 @@ env/
 .DS_Store
 Thumbs.db
 
+# 環境變數（含資料庫連線字串、JWT 密鑰，絕不上 git）
+.env
+.env.local
+.env.*.local
+
 # 日誌與暫存
 *.log
 .cache/

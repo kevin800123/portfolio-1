@@ -32,11 +32,11 @@ def create_project(p: ProjectCreate, _: str = Depends(get_current_user)):
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO projects (title, description, tech_stack, image_url, demo_url, github_url) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
+        "VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
         (p.title, p.description, p.tech_stack, p.image_url, p.demo_url, p.github_url),
     )
+    new_id = cur.fetchone()["id"]
     conn.commit()
-    new_id = cur.lastrowid
     row = conn.execute("SELECT * FROM projects WHERE id=?", (new_id,)).fetchone()
     conn.close()
     return ok(dict(row), "已新增作品")

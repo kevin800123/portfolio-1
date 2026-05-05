@@ -55,7 +55,7 @@ def update_profile(p: ProfileUpdate, _: str = Depends(get_current_user)):
     _ensure_profile(conn)
     conn.execute(
         "UPDATE profile SET name=?, title=?, bio=?, avatar_url=?, email=?, github=?, linkedin=?, "
-        "updated_at=datetime('now','localtime') WHERE id=1",
+        "updated_at=CURRENT_TIMESTAMP WHERE id=1",
         (p.name, p.title, p.bio, p.avatar_url, p.email, p.github, p.linkedin),
     )
     conn.commit()

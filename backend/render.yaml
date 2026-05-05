@@ -1,0 +1,20 @@
+# Render Blueprint：直接點 "New > Blueprint" 並指向此 repo 即可一鍵部署。
+# 文件：https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: portfolio-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.5
+      - key: DATABASE_URL
+        sync: false   # 上線時從 Render Dashboard 手動填入 Supabase 連線字串
+      - key: PORTFOLIO_SECRET
+        generateValue: true
+    healthCheckPath: /

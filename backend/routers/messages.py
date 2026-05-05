@@ -19,7 +19,7 @@ def _row_to_dict(row) -> dict:
 def stats(_: str = Depends(get_current_user)):
     conn = get_db()
     total = conn.execute("SELECT COUNT(*) AS c FROM messages").fetchone()["c"]
-    unread = conn.execute("SELECT COUNT(*) AS c FROM messages WHERE is_read=0").fetchone()["c"]
+    unread = conn.execute("SELECT COUNT(*) AS c FROM messages WHERE is_read=?", (False,)).fetchone()["c"]
     conn.close()
     return ok({"total": total, "unread": unread})
 
@@ -46,11 +46,11 @@ def get_message(mid: int, _: str = Depends(get_current_user)):
 def create_message(m: MessageCreate):
     conn = get_db()
     cur = conn.execute(
-        "INSERT INTO messages (name, email, content, is_read) VALUES (?, ?, ?, 0)",
+        "INSERT INTO messages (name, email, content) VALUES (?, ?, ?) RETURNING id",
         (m.name, m.email, m.content),
     )
+    new_id = cur.fetchone()["id"]
     conn.commit()
-    new_id = cur.lastrowid
     row = conn.execute("SELECT * FROM messages WHERE id=?", (new_id,)).fetchone()
     conn.close()
     return ok(_row_to_dict(row), "留言已送出，謝謝你！")
@@ -64,7 +64,7 @@ def update_message(mid: int, m: MessageUpdate, _: str = Depends(get_current_user
         fail("找不到留言", 404)
     conn.execute(
         "UPDATE messages SET is_read=? WHERE id=?",
-        (1 if m.is_read else 0, mid),
+        (bool(m.is_read), mid),
     )
     conn.commit()
     row = conn.execute("SELECT * FROM messages WHERE id=?", (mid,)).fetchone()
