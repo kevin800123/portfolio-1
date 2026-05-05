@@ -1,5 +1,5 @@
 // 後台共用：API_BASE、authFetch、checkAuth、logout、toast
-window.API_BASE = 'http://localhost:8000';
+window.API_BASE = 'https://portfolio-1-iw4i.onrender.com';
 
 function checkAuth() {
   if (!localStorage.getItem('token')) {

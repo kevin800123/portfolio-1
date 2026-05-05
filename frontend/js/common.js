@@ -1,5 +1,5 @@
 // 前台共用：API_BASE、navbar 行動選單、GSAP 進場、reduced-motion
-window.API_BASE = 'http://localhost:8000';
+window.API_BASE = 'https://portfolio-1-iw4i.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 行動裝置漢堡選單
